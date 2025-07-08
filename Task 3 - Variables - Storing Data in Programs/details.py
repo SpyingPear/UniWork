@@ -1,0 +1,5 @@
+name = input()
+age = input()
+house_number = input ()
+street_name = input ()
+print ("This is "+ name + ". He is " + age +" years old " + "and lives at house number " + house_number + " on "+ street_name +".")
