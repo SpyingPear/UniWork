@@ -4,11 +4,10 @@ print("Bond      - to calculate the amount you'll have to pay on a home loan.")
 print("Enter either “investment” or “bond” from the menu above to proceed:")
 print("Type 'exit' to quit the program.")
 invalid= False
-
+option= input().lower()
 while not invalid:
-    option= input().lower()
-    #This asking if its investment or a bond 
-    #The following are asking the questions to the investment and storing the answers
+    # This asking if its investment or a bond 
+    # The following are asking the questions to the investment and storing the answers
     match option:
         case "investment":
             print("How much are you investing?")
@@ -24,7 +23,7 @@ while not invalid:
             else:
                 print("Do you want “simple” or “compound” interest?" )
                 interest= input()
-                #this is calculating the intrest rate
+                # This is calculating the intrest rate
                 if interest == "simple":
                     total= money*(1 + interest_rate * timespan)
                     print(f"${total:.2f}")
@@ -37,7 +36,7 @@ while not invalid:
                     
     
         case "bond":
-            #This section for the option of the bond asking the question and storing the answers
+            # This section for the option of the bond asking the question and storing the answers
             print("Value of the house")
             value= int(input())
             print("interest rate")
@@ -50,15 +49,22 @@ while not invalid:
                 invalid= True
                 print("Invalid Response")
             else:
-                #This is calculating the bond time 
+                # This is calculating the bond time 
                 repayment= (interest_rate *value)/(1-(1+interest_rate)**(-months))
                 print(f"${repayment:.2f}")
             
-        #This is for if they didnt choose a valid asnwer
+        # This is for if they didnt choose a valid asnwer
         case "exit":
             invalid = True
             print("Exiting the program. Goodbye!")
+            break
             
         case default:
             invalid = True
             print("Invalid Response. Please enter either 'investment' or 'bond'.")
+   
+    print("Investment - to calculate the amount of interest you'll earn on your investment.")
+    print("Bond      - to calculate the amount you'll have to pay on a home loan.")
+    print("Enter either “investment” or “bond” from the menu above to proceed:")
+    print("Type 'exit' to quit the program.")
+    option= input().lower()
