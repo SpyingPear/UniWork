@@ -1,16 +1,16 @@
-with open("DOB.txt", "r") as file:
-    lines = file.readlines()
+file = open("DOB.txt", "r")
 names = []
 birthdates = []
-for line in lines:
+for line in file:
     parts = line.strip().split()
-    name = ' '.join(parts[:2])           
-    birthdate = ' '.join(parts[2:])      
+    name = parts[0] + " " + parts[1]
+    birthdate = parts[2] + " " + parts[3] + " " + parts[4]
     names.append(name)
     birthdates.append(birthdate)
+file.close()
 print("Name")
 for name in names:
     print(name)
 print("\nBirthdate")
-for birthdate in birthdates:
-    print(birthdate)
+for date in birthdates:
+    print(date)
