@@ -1,92 +1,68 @@
-"""
-Starting template for creating an email simulator program using
-classes, methods, and functions.
+#Just a note I had a friend help me fix the code, I got stuck withh the populate inbox
+class Email:
+    def __init__(self, email_address, subject_line, email_content):
+        self.email_address = email_address
+        self.subject_line = subject_line
+        self.email_content = email_content
+        self.has_been_read = False
 
-This template provides a foundational structure to develop your own
-email simulator. It includes placeholder functions and conditional statements
-with 'pass' statements to prevent crashes due to missing logic.
-Replace these 'pass' statements with your implementation once you've added
-the required functionality to each conditional statement and function.
+    def mark_as_read(self):
+        self.has_been_read = True
 
-Note: Throughout the code, update comments to reflect the changes and logic
-you implement for each function and method.
-"""
-
-# --- OOP Email Simulator --- #
-
-# --- Email Class --- #
-# Create the class, constructor and methods to create a new Email object.
-
-# Initialise the instance variables for each email.
-
-# Create the 'mark_as_read()' method to change the 'has_been_read'
-# instance variable for a specific object from False to True.
-
-
-# --- Functions --- #
-# Build out the required functions for your program.
-
+inbox = []  
 
 def populate_inbox():
-    # Create 3 sample emails and add them to the inbox list.
-    pass
-
+    inbox.append(Email("welcome@hyperiondev.com", "Welcome to HyperionDev!", "Thanks for joining"))
+    inbox.append(Email("bootcamp@hyperiondev.com", "Great work on the bootcamp!", "Keep up the great effort!"))
+    inbox.append(Email("results@hyperiondev.com", "You scored 95% on your last test!", "Well done on the excellent results!"))
 
 def list_emails():
-    # Create a function that prints each email's subject line
-    # alongside its corresponding index number,
-    # regardless of whether the email has been read.
-    pass
-
+    if not inbox:
+        print("Inbox is empty.")
+        return
+    for i, email in enumerate(inbox):
+        status = "Unread" if not email.has_been_read else "Read"
+        print(f"{i}: {email.subject_line} ({status})")
 
 def read_email(index):
-    # Create a function that displays the email_address, subject_line,
-    # and email_content attributes for the selected email.
-    # After displaying these details, use the 'mark_as_read()' method
-    # to set its 'has_been_read' instance variable to True.
-    pass
-
+    if index < 0 or index >= len(inbox):
+        print("Invalid index.")
+        return
+    email = inbox[index]
+    print(f"\nFrom: {email.email_address}")
+    print(f"Subject: {email.subject_line}")
+    print(f"Content:\n{email.email_content}\n")
+    email.mark_as_read()
+    print("Email marked as read.\n")
 
 def view_unread_emails():
-    # Create a function that displays all unread Email object subject lines
-    # along with their corresponding index numbers.
-    # The list of displayed emails should update as emails are read.
-    pass
+    unread = [(i, email) for i, email in enumerate(inbox) if not email.has_been_read]
+    if not unread:
+        print("No unread emails.")
+        return
+    for i, email in unread:
+        print(f"{i}: {email.subject_line}")
 
+populate_inbox()
 
-# --- Lists --- #
-# Initialise an empty list outside the class to store the email objects.
-
-# --- Email Program --- #
-
-# Call the function to populate the inbox for further use in your program.
-
-# Fill in the logic for the various menu operations.
-
-# Display the menu options for each iteration of the loop.
 while True:
-    user_choice = int(
-        input(
-            """\nWould you like to:
-    1. Read an email
-    2. View unread emails
-    3. Quit application
+    print("\nMenu:")
+    print("1. Read an email")
+    print("2. View unread emails")
+    print("3. Quit application")
+    choice = input("Enter selection: ")
 
-    Enter selection: """
-        )
-    )
-
-    if user_choice == 1:
-        # Add logic here to read an email
-        pass
-
-    elif user_choice == 2:
-        # Add logic here to view unread emails
-        pass
-
-    elif user_choice == 3:
-        # Add logic here to quit application.
-        pass
-
+    if choice == "1":
+        list_emails()
+        try:
+            idx = int(input("Enter email index to read: "))
+            read_email(idx)
+        except ValueError:
+            print("Please enter a valid number.")
+    elif choice == "2":
+        view_unread_emails()
+    elif choice == "3":
+        print("Goodbye!")
+        break
     else:
-        print("Oops - incorrect input.")
+        print("Invalid input.")

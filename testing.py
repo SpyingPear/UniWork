@@ -1,41 +1,67 @@
-#Calculates the cost of the stay based off the amount of nights
-def hotel_cost(nights):
-    return nights * 100
+class Email:
+    def __init__(self, email_address, subject_line, email_content):
+        self.email_address = email_address
+        self.subject_line = subject_line
+        self.email_content = email_content
+        self.has_been_read = False
 
-# Calculates the cost of a flight based on the city
-def plane_costs(city):
-    if city == "Cape Town":
-        return 200
-    elif city == "East London":
-        return 100
-    elif city == "Burger Town":
-        return 600
-    elif city == "Cow Town":
-        return 400
+    def mark_as_read(self):
+        self.has_been_read = True
+
+inbox = []  
+
+def populate_inbox():
+    inbox.append(Email("welcome@hyperiondev.com", "Welcome to HyperionDev!", "Thanks for joining"))
+    inbox.append(Email("bootcamp@hyperiondev.com", "Great work on the bootcamp!", "Keep up the great effort!"))
+    inbox.append(Email("results@hyperiondev.com", "You scored 95% on your last test!", "Well done on the excellent results!"))
+
+def list_emails():
+    if not inbox:
+        print("Inbox is empty.")
+        return
+    for i, email in enumerate(inbox):
+        status = "Unread" if not email.has_been_read else "Read"
+        print(f"{i}: {email.subject_line} ({status})")
+
+def read_email(index):
+    if index < 0 or index >= len(inbox):
+        print("Invalid index.")
+        return
+    email = inbox[index]
+    print(f"\nFrom: {email.email_address}")
+    print(f"Subject: {email.subject_line}")
+    print(f"Content:\n{email.email_content}\n")
+    email.mark_as_read()
+    print("Email marked as read.\n")
+
+def view_unread_emails():
+    unread = [(i, email) for i, email in enumerate(inbox) if not email.has_been_read]
+    if not unread:
+        print("No unread emails.")
+        return
+    for i, email in unread:
+        print(f"{i}: {email.subject_line}")
+
+populate_inbox()
+
+while True:
+    print("\nMenu:")
+    print("1. Read an email")
+    print("2. View unread emails")
+    print("3. Quit application")
+    choice = input("Enter selection: ")
+
+    if choice == "1":
+        list_emails()
+        try:
+            idx = int(input("Enter email index to read: "))
+            read_email(idx)
+        except ValueError:
+            print("Please enter a valid number.")
+    elif choice == "2":
+        view_unread_emails()
+    elif choice == "3":
+        print("Goodbye!")
+        break
     else:
-        return 0
-
-#Calculates the cost of the car rent based off how many days
-def car_rental(days):
-    return days * 40
-
-#Calculates the total cost of the holiday
-def holiday_cost(city, nights, days):
-    return hotel_cost(nights) + plane_costs(city) + car_rental(days)
-
-print("Choose a city: Cape Town, East London, Burger Town, Cow Town")
-city = input("Where are you going? ").title()
-nights = int(input("How many nights will you stay? "))
-days = int(input("How many days will you rent a car? "))
-
-hotel = hotel_cost(nights)
-flight = plane_costs(city)
-car = car_rental(days)
-total = holiday_cost(city, nights, days)
-
-#Explains to the user where the costs come from
-print("\nHoliday Cost Breakdown:")
-print("Hotel: R", hotel)
-print("Flight: R", flight)
-print("Car Rental: R", car)
-print("Total: R", total)
+        print("Invalid input.")
