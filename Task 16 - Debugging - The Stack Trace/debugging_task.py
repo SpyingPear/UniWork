@@ -2,7 +2,6 @@
 def print_values_of(dictionary, keys):
     for key in keys:
         print(dictionary[key])
-
 # Print dictionary values from simpson_catch_phrases
 simpson_catch_phrases = {
     "lisa": "BAAAAAART!", 

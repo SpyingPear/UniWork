@@ -1,7 +1,6 @@
 x = float(input("First number: "))
 y = float(input("Second number: "))
 op = input("Operation (+, -, *, /): ")
-
 if op == "+":
     print(x + y)
 elif op == "-":
