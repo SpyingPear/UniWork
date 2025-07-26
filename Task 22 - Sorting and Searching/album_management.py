@@ -1,5 +1,3 @@
-# album_management.py
-
 class Album:
     def __init__(self, album_name, album_artist, number_of_songs):
         self.album_name = album_name
@@ -9,7 +7,6 @@ class Album:
     def __str__(self):
         return f"({self.album_name}, {self.album_artist}, {self.number_of_songs})"
 
-# Step 3: Create albums1 with 5 albums and print
 albums1 = [
     Album("Thriller", "Michael Jackson", 9),
     Album("Back in Black", "AC/DC", 10),
@@ -22,24 +19,20 @@ print("Original albums1:")
 for album in albums1:
     print(album)
 
-# Step 4: Sort albums1 by number_of_songs
 albums1.sort(key=lambda a: a.number_of_songs)
 
 print("\nSorted albums1 by number_of_songs:")
 for album in albums1:
     print(album)
 
-# Step 5: Swap first and second album
 albums1[0], albums1[1] = albums1[1], albums1[0]
 
 print("\nAfter swapping first two albums in albums1:")
 for album in albums1:
     print(album)
 
-# Step 6: Create albums2
 albums2 = []
 
-# Step 7: Add 5 new albums to albums2 and print
 albums2.extend([
     Album("21", "Adele", 11),
     Album("Abbey Road", "The Beatles", 17),
@@ -52,21 +45,17 @@ print("\nInitial albums2:")
 for album in albums2:
     print(album)
 
-# Step 8: Copy albums1 into albums2
 albums2.extend(albums1)
 
-# Step 9: Add two specific albums
 albums2.append(Album("Dark Side of the Moon", "Pink Floyd", 9))
 albums2.append(Album("Oops!... I Did It Again", "Britney Spears", 16))
 
-# Step 10: Sort albums2 alphabetically by album_name
 albums2.sort(key=lambda a: a.album_name)
 
 print("\nSorted albums2 by album_name:")
 for album in albums2:
     print(album)
 
-# Step 11: Search for "Dark Side of the Moon" and print index
 for index, album in enumerate(albums2):
     if album.album_name == "Dark Side of the Moon":
         print(f"\nIndex of 'Dark Side of the Moon' in albums2: {index}")
