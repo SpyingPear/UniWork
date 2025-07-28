@@ -1,0 +1,19 @@
+# Create three folders
+New-Item -ItemType Directory -Name "FolderOne"
+New-Item -ItemType Directory -Name "FolderTwo"
+New-Item -ItemType Directory -Name "FolderThree"
+
+# Navigate into FolderOne
+Set-Location -Path ".\FolderOne"
+
+# Create three new folders inside FolderOne
+New-Item -ItemType Directory -Name "SubFolderA"
+New-Item -ItemType Directory -Name "SubFolderB"
+New-Item -ItemType Directory -Name "SubFolderC"
+
+# Navigate back to root (optional, for clarity)
+Set-Location -Path ".."
+
+# Remove FolderTwo and FolderThree
+Remove-Item -Recurse -Force -Path ".\FolderTwo"
+Remove-Item -Recurse -Force -Path ".\FolderThree"
