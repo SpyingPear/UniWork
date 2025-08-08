@@ -1,11 +1,7 @@
 import sqlite3
 
-def connect_db():
-    conn = sqlite3.connect("ebookstore.db")
-    return conn, conn.cursor()
-
 def setup_tables(cursor):
-    # Makes sure both tables exist before doing anything
+    """Create the author and book tables if they don't exist."""
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS author (
             id INTEGER PRIMARY KEY,
@@ -24,7 +20,7 @@ def setup_tables(cursor):
     ''')
 
 def insert_initial_data(cursor, conn):
-    # Only adds this data if the tables are empty
+    """Insert initial authors and books if tables are empty."""
     authors = [
         (1290, "Charles Dickens", "England"),
         (8937, "J.K. Rowling", "England"),
@@ -40,182 +36,219 @@ def insert_initial_data(cursor, conn):
         (3005, "Alice’s Adventures in Wonderland", 5620, 12)
     ]
 
-    # Checks if tables are empty before inserting
-    cursor.execute("SELECT COUNT(*) FROM author")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO author VALUES (?, ?, ?)", authors)
+    try:
+        cursor.execute("SELECT COUNT(*) FROM author")
+        if cursor.fetchone()[0] == 0:
+            cursor.executemany("INSERT INTO author VALUES (?, ?, ?)", authors)
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Could not insert authors:", e)
 
-    cursor.execute("SELECT COUNT(*) FROM book")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO book VALUES (?, ?, ?, ?)", books)
-
-    conn.commit()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM book")
+        if cursor.fetchone()[0] == 0:
+            cursor.executemany("INSERT INTO book VALUES (?, ?, ?, ?)", books)
+            conn.commit()
+    except sqlite3.Error as e:
+        print("Could not insert books:", e)
 
 def get_int(prompt, length=4):
-    # Gets an int from user and makes sure it's the correct length
-    try:
-        val = int(input(prompt).strip())
-        if len(str(val)) != length:
-            raise ValueError(f"Needs to be {length} digits.")
-        return val
-    except ValueError as e:
-        print("Invalid input:", e)
-        return None
+    """Ask for an integer of a given digit length. Retry or cancel."""
+    while True:
+        raw = input(prompt).strip()
+        try:
+            val = int(raw)
+            if len(str(val)) != length:
+                raise ValueError(f"Needs to be {length} digits.")
+            return val
+        except ValueError as e:
+            print("Invalid input:", e)
+            again = input("Try again? (y to retry): ").strip().lower()
+            if again != "y":
+                return None
 
 def enter_book(cursor, conn):
+    """Add a new book, validating IDs before inserting."""
     print("\n--- Add New Book ---")
-    id = get_int("Enter new book ID (4 digits): ")
-    if id is None: return
+
+    while True:
+        book_id = get_int("Enter new book ID (4 digits): ")
+        if book_id is None:
+            print("Cancelled.")
+            return
+        cursor.execute("SELECT 1 FROM book WHERE id = ?", (book_id,))
+        if cursor.fetchone():
+            print("That book ID already exists.")
+            again = input("Try different ID? (y to retry): ").strip().lower()
+            if again != "y":
+                return
+        else:
+            break
 
     title = input("Enter title: ").strip()
-    authorID = get_int("Enter author ID (4 digits): ")
-    if authorID is None: return
+    if not title:
+        print("No title entered.")
+        return
+
+    while True:
+        author_id = get_int("Enter author ID (4 digits): ")
+        if author_id is None:
+            print("Cancelled.")
+            return
+        cursor.execute("SELECT 1 FROM author WHERE id = ?", (author_id,))
+        if not cursor.fetchone():
+            print("That author ID does not exist.")
+            again = input("Try another? (y to retry): ").strip().lower()
+            if again != "y":
+                return
+        else:
+            break
 
     try:
         qty = int(input("Enter quantity: ").strip())
-        cursor.execute("INSERT INTO book VALUES (?, ?, ?, ?)", (id, title, authorID, qty))
-        conn.commit()
-        print("Book added.")
-    except sqlite3.IntegrityError:
-        print("Book ID or Author ID already exists or doesn't exist.")
-    except Exception as e:
-        print("Something went wrong while adding the book:", e)
-
-def update_book(cursor, conn):
-    print("\n--- Update Book ---")
-    id = get_int("Enter book ID to update: ")
-    if id is None: return
-
-    # Gets book & author info
-    try:
-        cursor.execute('''
-            SELECT book.title, book.qty, book.authorID, author.name, author.country
-            FROM book
-            JOIN author ON book.authorID = author.id
-            WHERE book.id = ?
-        ''', (id,))
-        result = cursor.fetchone()
-    except Exception as e:
-        print("Error retrieving book:", e)
+        if qty < 0:
+            raise ValueError("Quantity cannot be negative.")
+    except ValueError as e:
+        print("Invalid quantity:", e)
         return
 
-    if not result:
+    try:
+        cursor.execute("INSERT INTO book VALUES (?, ?, ?, ?)", (book_id, title, author_id, qty))
+        conn.commit()
+        print("Book added.")
+    except sqlite3.Error as e:
+        print("Could not add book:", e)
+
+def update_book(cursor, conn):
+    """Update a book's title, quantity, or author ID."""
+    print("\n--- Update Book ---")
+    book_id = get_int("Enter book ID to update: ")
+    if book_id is None:
+        return
+
+    try:
+        cursor.execute("""
+            SELECT b.title, b.qty, b.authorID, a.name, a.country
+            FROM book b
+            INNER JOIN author a ON b.authorID = a.id
+            WHERE b.id = ?
+        """, (book_id,))
+        row = cursor.fetchone()
+    except sqlite3.Error as e:
+        print("Could not retrieve book:", e)
+        return
+
+    if not row:
         print("Book not found.")
         return
 
-    # Shows current info
-    print(f"\nCurrent title: {result[0]}")
-    print(f"Current quantity: {result[1]}")
-    print(f"Author ID: {result[2]}")
-    print(f"Author's Name: {result[3]}")
-    print(f"Author's Country: {result[4]}")
+    print(f"\nCurrent title   : {row[0]}")
+    print(f"Current qty     : {row[1]}")
+    print(f"Author ID       : {row[2]}")
+    print(f"Author name     : {row[3]}")
+    print(f"Author country  : {row[4]}")
 
-    option = input("\nWhat do you want to update? (title/qty/authorID): ").strip()
+    option = input("\nUpdate (title/qty/authorID): ").strip()
     if option not in ("title", "qty", "authorID"):
-        print("Not a valid option.")
+        print("Invalid option.")
         return
 
-    value = input(f"Enter new value for {option}: ").strip()
+    new_value = input(f"Enter new value for {option}: ").strip()
+    if not new_value:
+        return
+
+    if option == "qty":
+        try:
+            new_value = int(new_value)
+            if new_value < 0:
+                raise ValueError
+        except ValueError:
+            print("Invalid quantity.")
+            return
+    elif option == "authorID":
+        try:
+            new_value = int(new_value)
+            if len(str(new_value)) != 4:
+                raise ValueError
+        except ValueError:
+            print("Invalid author ID.")
+            return
+        cursor.execute("SELECT 1 FROM author WHERE id = ?", (new_value,))
+        if not cursor.fetchone():
+            print("Author ID does not exist.")
+            return
 
     try:
-        if option in ("qty", "authorID"):
-            value = int(value)
-        cursor.execute(f"UPDATE book SET {option} = ? WHERE id = ?", (value, id))
+        cursor.execute(f"UPDATE book SET {option} = ? WHERE id = ?", (new_value, book_id))
         conn.commit()
         print("Book updated.")
-    except Exception as e:
+    except sqlite3.Error as e:
         print("Update failed:", e)
-        return
-
-    # Ask if the user also wants to update the author details
-    update_author = input("\nDo you also want to update the author's name or country? (yes/no): ").strip().lower()
-    if update_author == "yes":
-        author_id = result[2]
-        new_name = input("Enter new author name (leave blank to skip): ").strip()
-        new_country = input("Enter new author country (leave blank to skip): ").strip()
-
-        # Only update fields that were filled in
-        try:
-            if new_name:
-                cursor.execute("UPDATE author SET name = ? WHERE id = ?", (new_name, author_id))
-            if new_country:
-                cursor.execute("UPDATE author SET country = ? WHERE id = ?", (new_country, author_id))
-            conn.commit()
-            print("Author info updated.")
-        except Exception as e:
-            print("Couldn't update author info:", e)
 
 def delete_book(cursor, conn):
+    """Delete a book by its ID."""
     print("\n--- Delete Book ---")
-    id = get_int("Enter book ID to delete: ")
-    if id is None: return
+    book_id = get_int("Enter book ID to delete: ")
+    if book_id is None:
+        return
 
     try:
-        cursor.execute("DELETE FROM book WHERE id = ?", (id,))
+        cursor.execute("DELETE FROM book WHERE id = ?", (book_id,))
         conn.commit()
-
         if cursor.rowcount:
             print("Book deleted.")
         else:
             print("Book not found.")
-    except Exception as e:
-        print("Something went wrong while deleting:", e)
+    except sqlite3.Error as e:
+        print("Delete failed:", e)
 
 def search_books(cursor):
+    """Search for books by title keyword."""
     print("\n--- Search Books ---")
-    keyword = input("Search by title (or part of it): ").strip()
-    cursor.execute("SELECT * FROM book WHERE title LIKE ?", ('%' + keyword + '%',))
-    results = cursor.fetchall()
+    keyword = input("Search by title: ").strip()
+    try:
+        cursor.execute("SELECT id, title, authorID, qty FROM book WHERE title LIKE ?", (f"%{keyword}%",))
+        rows = cursor.fetchall()
+    except sqlite3.Error as e:
+        print("Search failed:", e)
+        return
 
-    if results:
-        for book in results:
-            print(f"ID: {book[0]} | Title: {book[1]} | Author ID: {book[2]} | Qty: {book[3]}")
+    if rows:
+        for r in rows:
+            print(f"ID: {r[0]} | Title: {r[1]} | Author ID: {r[2]} | Qty: {r[3]}")
     else:
         print("No matches found.")
 
 def view_all_books(cursor):
-    print("\n--- All Books with Author Info ---")
-    cursor.execute('''
-        SELECT book.title, author.name, author.country
-        FROM book
-        INNER JOIN author ON book.authorID = author.id
-    ''')
-    rows = cursor.fetchall()
+    """Show all books with author and country details."""
+    print("\n--- All Books (with Author & Country) ---")
+    try:
+        cursor.execute("""
+            SELECT b.id, b.title, a.name, a.country, b.qty
+            FROM book b
+            INNER JOIN author a ON b.authorID = a.id
+            ORDER BY b.id
+        """)
+        rows = cursor.fetchall()
+    except sqlite3.Error as e:
+        print("Could not retrieve books:", e)
+        return
 
     if not rows:
         print("No books in the system.")
         return
 
-    for title, name, country in rows:
-        print(f"\nTitle: {title}")
-        print(f"Author: {name}")
-        print(f"Country: {country}")
-        print("-" * 40)
-
-def show_all_details(cursor):
-    print("\n--- Full Book Details ---")
-
-    # Pulls info from both book and author tables
-    cursor.execute('''
-        SELECT book.title, author.name, author.country
-        FROM book
-        JOIN author ON book.authorID = author.id
-    ''')
-    results = cursor.fetchall()
-
-    if not results:
-        print("No books to display.")
-        return
-
-    # Displays in a clean format
-    for title, name, country in results:
-        print(f"\nTitle: {title}")
-        print(f"Author's Name: {name}")
-        print(f"Author's Country: {country}")
-        print("-" * 50)
+    sep = "-" * 50
+    for book_id, title, name, country, qty in rows:
+        print(sep)
+        print(f"ID      : {book_id}")
+        print(f"Title   : {title}")
+        print(f"Author  : {name} [{country}]")
+        print(f"Quantity: {qty}")
+    print(sep)
 
 def main():
-    # Uses with-block so databse closes properly no matter what
+    """Main menu loop."""
     with sqlite3.connect("ebookstore.db") as conn:
         cursor = conn.cursor()
         setup_tables(cursor)
@@ -227,8 +260,7 @@ def main():
             print("2. Update book")
             print("3. Delete book")
             print("4. Search books")
-            print("5. View details of all books")
-            print("6. View details of all books (with author + country)")
+            print("5. View details of all books (with author + country)")
             print("0. Exit")
 
             choice = input("Choose an option: ").strip()
@@ -243,13 +275,11 @@ def main():
                 search_books(cursor)
             elif choice == '5':
                 view_all_books(cursor)
-            elif choice == '6':
-                show_all_details(cursor)
             elif choice == '0':
-                print("Exiting... Bye!")
+                print("Exiting...")
                 break
             else:
-                print("Not a valid choice. Try again.")
+                print("Not a valid choice.")
 
 if __name__ == "__main__":
     main()
