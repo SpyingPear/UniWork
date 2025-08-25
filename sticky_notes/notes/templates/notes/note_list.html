@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Notes</h1>
+  <ul class="note-grid">
+    {% for note in notes %}
+      <li class="note-card">
+        <a href="{% url 'notes:detail' note.pk %}"><strong>{{ note.title }}</strong></a>
+        <p>{{ note.content|truncatechars:120 }}</p>
+      </li>
+    {% empty %}
+      <p>No notes yet. <a href="{% url 'notes:create' %}">Create one</a>.</p>
+    {% endfor %}
+  </ul>
+{% endblock %}

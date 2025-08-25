@@ -1,0 +1,19 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sticky Notes</title>
+  <link rel="stylesheet" href="{% static 'notes/css/styles.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <a href="{% url 'notes:list' %}">Home</a> |
+    <a href="{% url 'notes:create' %}">New Note</a>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
